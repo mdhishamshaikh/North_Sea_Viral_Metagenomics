@@ -1,0 +1,15 @@
+
+data/raw_reads/*
+!data/raw_reads/.cd gitkeep
+
+figures/*
+!figures/.gitkeep
+
+working/*
+!working/.gitkeep
+
+results/*
+!results/.gitkeep
+
+logs/*
+!logs/.gitkeep
