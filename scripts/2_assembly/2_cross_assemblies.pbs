@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+
+#PBS -N megahit_cross_assemblies
+#PBS -l nodes=1:ppn=40 #1 of node requested; 20 processors in total
+#PBS -l walltime=48:00:00 # 48 hours walltime
+#PBS -l mem=150gb #150 Gb memory in total
+#PBS -m abe
+#PBS -M MohammedHisham.Shaikh@ugent.be
+#PBS -o /data/gent/vo/001/gvo00125/vsc44392/Projects/North_Sea_Viral_Metagenomics/logs/${PBS_JOBNAME}_output.log  
+#PBS -e /data/gent/vo/001/gvo00125/vsc44392/Projects/North_Sea_Viral_Metagenomics/logs/${PBS_JOBNAME}_error.log   
+
+
+
+#Making sure I am on the rigth cluster
+module swap cluster/doduo
+
+# Unset OMP_PROC_BIND
+unset OMP_PROC_BIND
+
+
+
+# AIM: To assemble cross MEGAHIT assemblies, assess the qualityusing metaQUAST and compile the report using multiQC
+
+. ~/vo_vliz.sh
+. .bashrc
+
+# Defining directories
+HOME_DIR="/data/gent/vo/001/gvo00125/vsc44392/Projects/North_Sea_Viral_Metagenomics"
+OUTPUT_DIR="$HOME_DIR/working/2_assembly/2_cross_assemblies"
+TRIMMED_READS_DIR="$HOME_DIR/working/1_read_qc_trimming/1_fastp_trim_qc"
+SAMPLE_LIST_DIR="$HOME_DIR/data/sample_overview"
+SAMPLE_LISTS=("NJ_sample_list.csv" "PE_sample_list.csv" "GF_sample_list.csv" "NJ_PE_sample_list.csv" "NJ_PE_GF_sample_list.csv")
+METAQUAST_DIR="$OUTPUT_DIR/../3_metaquast_individual_assemblies"
+
+mkdir -p $OUTPUT_DIR $METAQUAST_DIR
+cd $OUTPUT_DIR
+
+
+# Function to run cross-assembly for a given sample list
+run_cross_assembly() {
+  local sample_list=$1
+  local prefix=$2
+
+  # Reading the sample list file and store sample names in an array
+  readarray -t samples < "$SAMPLE_LIST_DIR/$sample_list"
+
+  # Initializing arrays for read1 and read2 files
+  R1_FILES=()
+  R2_FILES=()
+
+  # Looping through each sample to construct input files list
+  for sample in "${samples[@]}"; do
+    R1_FILE="$TRIMMED_READS_DIR/${sample}_R1_paired.fastq.gz"
+    R2_FILE="$TRIMMED_READS_DIR/${sample}_R2_paired.fastq.gz"
+
+    if [[ -f "$R1_FILE" && -f "$R2_FILE" ]]; then
+      R1_FILES+=("$R1_FILE")
+      R2_FILES+=("$R2_FILE")
+    else
+      echo "Warning: One or both files for sample $sample do not exist."
+    fi
+  done
+
+  # Converting arrays to comma-separated strings
+  R1_FILES_STR=$(IFS=,; echo "${R1_FILES[*]}")
+  R2_FILES_STR=$(IFS=,; echo "${R2_FILES[*]}")
+
+  # Checking
+  echo "R1 files for $prefix: $R1_FILES_STR"
+  echo "R2 files for $prefix: $R2_FILES_STR"
+
+  # mamba activate megahit
+  # # Step 1: Running MEGAHIT
+  # megahit -1 "$R1_FILES_STR" -2 "$R2_FILES_STR" -o "$OUTPUT_DIR/${prefix}_cross_assembly" -t 40 -m 0.8
+  # mamba deactivate
+
+  # Step 2: Running MetaQUAST on the cross-assembly
+  if [ -f "$OUTPUT_DIR/${prefix}_cross_assembly/final.contigs.fa" ]; then
+      echo "Running MetaQUAST for $prefix"
+      mamba activate quast
+      metaquast.py "$OUTPUT_DIR/${prefix}_cross_assembly/final.contigs.fa" \
+                   -o "$METAQUAST_DIR/${prefix}_metaquast" \
+                   --threads 40
+      mamba deactivate
+  else
+      echo "Warning: final.contigs.fa not found for $prefix"
+  fi
+}
+
+
+# Running cross-assemblies
+run_cross_assembly "NJ_sample_list.csv" "NJ"
+run_cross_assembly "PE_sample_list.csv" "PE"
+run_cross_assembly "GF_sample_list.csv" "GF"
+run_cross_assembly "NJ_PE_sample_list.csv" "NJ_PE"
+run_cross_assembly "NJ_PE_GF_sample_list.csv" "NJ_PE_GF"
+
+
+
+# Step 3: Run MultiQC to compile MetaQUAST results
+
+echo "Running MultiQC on MetaQUAST results"
+
+mamba activate multiqc
+
+multiqc $METAQUAST_DIR -o $METAQUAST_DIR/multiqc -n cross_assembly_metaquast_multiqc_report.html
+
+mamba deactivate

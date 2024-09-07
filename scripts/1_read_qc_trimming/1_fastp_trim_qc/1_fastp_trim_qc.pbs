@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#PBS -N 1_fastp_trim_qc
+#PBS -N fastp_trim_qc
 #PBS -l nodes=1:ppn=20 #1 of node requested; 20 processors in total
 #PBS -l walltime=40:00:00 # 72 hours walltime
 #PBS -l mem=100gb #100 Gb memory in total
@@ -13,9 +13,6 @@
 
 #Making sure I am on the rigth cluster
 module swap cluster/doduo
-
-
-# AIM: To assess the initial quality of Spuikom reads
 
 
 # Unset OMP_PROC_BIND
@@ -43,7 +40,7 @@ cd $OUTPUT_DIR
 mamba activate fastp
 
 # Running fastp on NJ2020 and PE samples 
-for sample in `cat $SAMPLE_LIST_NJ_PE`; do
+for sample in $(cat $SAMPLE_LIST_NJ_PE); do
     echo "Processing sample: $sample"
     fastp -i "$SAMPLE_DIR/${sample}_R1.fastq.gz" -I "$SAMPLE_DIR/${sample}_R2.fastq.gz" -o ${sample}_R1_paired.fastq.gz -O ${sample}_R2_paired.fastq.gz --unpaired1 ${sample}_R1_unpaired.fastq.gz --unpaired2 ${sample}_R2_unpaired.fastq.gz --html "${sample}_fastp.html" --json "${sample}_fastp.json" --report_title "${sample} fastp report" --thread 16 --compression 4  --dont_overwrite --verbose --dedup --dup_calc_accuracy 6 --detect_adapter_for_pe --trim_front1 15 --trim_front2 15 --trim_tail1 15 --trim_tail2 15 --cut_right --cut_front --cut_mean_quality 30 --qualified_quality_phred 33 --length_required 50 --correction --overrepresentation_analysis
 done
@@ -52,7 +49,7 @@ done
 
 
 # Running fastp on GF samples 
-for sample in `cat $SAMPLE_LIST_GF`; do
+for sample in $(cat $SAMPLE_LIST_GF); do
     echo "Processing sample: $sample"
     fastp -i "$SAMPLE_DIR/${sample}_R1.fastq.gz" -I "$SAMPLE_DIR/${sample}_R2.fastq.gz" -o ${sample}_R1_paired.fastq.gz -O ${sample}_R2_paired.fastq.gz --unpaired1 ${sample}_R1_unpaired.fastq.gz --unpaired2 ${sample}_R2_unpaired.fastq.gz --html "${sample}_fastp.html" --json "${sample}_fastp.json" --report_title "${sample} fastp report" --thread 16 --compression 4  --dont_overwrite --verbose --dedup --dup_calc_accuracy 6 --detect_adapter_for_pe --cut_right --cut_front --cut_mean_quality 30 --qualified_quality_phred 33 --length_required 50 --correction --overrepresentation_analysis
 done
@@ -63,6 +60,7 @@ mamba deactivate
 
 mamba activate multiqc
 
-multiqc -d . -o ./multiqc_output
+multiqc -d . -o ./multiqc -n trimmed_reads_multiqc_report.html
+
 
 mamba deactivate
