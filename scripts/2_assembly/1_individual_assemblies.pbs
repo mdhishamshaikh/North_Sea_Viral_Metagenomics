@@ -40,7 +40,7 @@ cd $OUTPUT_DIR
 
 
 # Running MEGAHIT 
-while IFS= read -r sample; do
+for sample in $(cat $SAMPLE_LIST_NJ_PE_GF); do
     echo "Processing sample: $sample"
     
     # Step 1: Running megahit
@@ -66,11 +66,12 @@ while IFS= read -r sample; do
 
     metaquast.py "$OUTPUT_DIR/${sample}_megahit_assembly/${sample}_final_contigs.fa" \
                  -o "$METAQUAST_DIR/${sample}_metaquast" \
+                 --max-ref-number 0 \
                  --threads 40
 
     mamba deactivate
 
-done < "$SAMPLE_LIST_NJ_PE_GF"
+done 
 
 
 mamba activate multiqc

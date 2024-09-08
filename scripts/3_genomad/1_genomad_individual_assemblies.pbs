@@ -38,14 +38,14 @@ cd $OUTPUT_DIR
 mamba activate genomad
 
 
-while IFS= read -r sample; do
+for sample in $(cat $SAMPLE_LIST_NJ_PE_GF); do
   
     echo "Running Genomad end-to-end for sample: $sample"
 
     # Running genomad
     genomad end-to-end --threads 40 --cleanup --splits 16 "$ASSEMBLY_DIR/${sample}_megahit_assembly/${sample}_final_contigs.fa" "$OUTPUT_DIR/${sample}_genomad_output" "$GENOMAD_DB"
  
-done < "$SAMPLE_LIST_NJ_PE_GF"
+done 
 
 
 mamba deactivate

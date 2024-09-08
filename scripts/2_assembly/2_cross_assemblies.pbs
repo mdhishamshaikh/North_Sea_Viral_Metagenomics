@@ -30,7 +30,7 @@ OUTPUT_DIR="$HOME_DIR/working/2_assembly/2_cross_assemblies"
 TRIMMED_READS_DIR="$HOME_DIR/working/1_read_qc_trimming/1_fastp_trim_qc"
 SAMPLE_LIST_DIR="$HOME_DIR/data/sample_overview"
 SAMPLE_LISTS=("NJ_sample_list.csv" "PE_sample_list.csv" "GF_sample_list.csv" "NJ_PE_sample_list.csv" "NJ_PE_GF_sample_list.csv")
-METAQUAST_DIR="$OUTPUT_DIR/../3_metaquast_individual_assemblies"
+METAQUAST_DIR="$OUTPUT_DIR/../4_metaquast_cross_assemblies"
 
 mkdir -p $OUTPUT_DIR $METAQUAST_DIR
 cd $OUTPUT_DIR
@@ -69,21 +69,31 @@ run_cross_assembly() {
   echo "R1 files for $prefix: $R1_FILES_STR"
   echo "R2 files for $prefix: $R2_FILES_STR"
 
-  # mamba activate megahit
-  # # Step 1: Running MEGAHIT
-  # megahit -1 "$R1_FILES_STR" -2 "$R2_FILES_STR" -o "$OUTPUT_DIR/${prefix}_cross_assembly" -t 40 -m 0.8
-  # mamba deactivate
+  mamba activate megahit
+  # Step 1: Running MEGAHIT
+  megahit -1 "$R1_FILES_STR" -2 "$R2_FILES_STR" -o "$OUTPUT_DIR/${prefix}_cross_assembly" -t 40 -m 0.8
+  mamba deactivate
+
+
+if [ -f "$OUTPUT_DIR/${prefix}_cross_assembly/final.contigs.fa" ]; then
+      mv "$OUTPUT_DIR/${prefix}_cross_assembly/final.contigs.fa" "$OUTPUT_DIR/${prefix}_cross_assembly/${prefix}_final_contigs.fa"
+      echo "Renamed final.contigs.fa to ${prefix}_final_contigs.fa"
+  else
+      echo "Warning: final.contigs.fa not found for $prefix"
+  fi
+
 
   # Step 2: Running MetaQUAST on the cross-assembly
-  if [ -f "$OUTPUT_DIR/${prefix}_cross_assembly/final.contigs.fa" ]; then
+ if [ -f "$OUTPUT_DIR/${prefix}_cross_assembly/${prefix}_final_contigs.fa" ]; then
       echo "Running MetaQUAST for $prefix"
       mamba activate quast
-      metaquast.py "$OUTPUT_DIR/${prefix}_cross_assembly/final.contigs.fa" \
+      metaquast.py "$OUTPUT_DIR/${prefix}_cross_assembly/${prefix}_final_contigs.fa" \
                    -o "$METAQUAST_DIR/${prefix}_metaquast" \
+                   --max-ref-number 0 \
                    --threads 40
       mamba deactivate
   else
-      echo "Warning: final.contigs.fa not found for $prefix"
+      echo "Warning: ${prefix}_final_contigs.fa not found for $prefix"
   fi
 }
 

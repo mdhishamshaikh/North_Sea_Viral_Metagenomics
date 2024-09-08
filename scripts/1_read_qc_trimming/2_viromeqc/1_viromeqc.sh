@@ -36,12 +36,12 @@ SAMPLE_LIST_NJ_PE_GF="$HOME_DIR/data/sample_overview/NJ_PE_GF_sample_list.csv"
 mkdir -p $OUTPUT_DIR
 cd $OUTPUT_DIR
 
-# Activate MEGAHIT
+# Activate viromeQC
 mamba activate viromeqc
 
 
-# Running MEGAHIT 
-while IFS= read -r sample; do
+# Running viromeQC 
+for sample in $(cat $SAMPLE_LIST_NJ_PE_GF); do
     echo "Processing sample: $sample"
     
     viromeQC.py -i $TRIMMED_READS_DIR/${sample}_R1_paired.fastq.gz $TRIMMED_READS_DIR/${sample}_R2_paired.fastq.gz \
@@ -50,5 +50,5 @@ while IFS= read -r sample; do
     --diamond_threads 40 \
     -w environmental
 
-done < "$SAMPLE_LIST_NJ_PE_GF"
+done 
 
