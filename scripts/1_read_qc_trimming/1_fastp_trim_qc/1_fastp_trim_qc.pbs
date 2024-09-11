@@ -42,7 +42,7 @@ mamba activate fastp
 # Running fastp on NJ2020 and PE samples 
 for sample in $(cat $SAMPLE_LIST_NJ_PE); do
     echo "Processing sample: $sample"
-    fastp -i "$SAMPLE_DIR/${sample}_R1.fastq.gz" -I "$SAMPLE_DIR/${sample}_R2.fastq.gz" -o ${sample}_R1_paired.fastq.gz -O ${sample}_R2_paired.fastq.gz --unpaired1 ${sample}_R1_unpaired.fastq.gz --unpaired2 ${sample}_R2_unpaired.fastq.gz --html "${sample}_fastp.html" --json "${sample}_fastp.json" --report_title "${sample} fastp report" --thread 16 --compression 4  --dont_overwrite --verbose --dedup --dup_calc_accuracy 6 --detect_adapter_for_pe --trim_front1 15 --trim_front2 15 --trim_tail1 15 --trim_tail2 15 --cut_right --cut_front --cut_mean_quality 30 --qualified_quality_phred 33 --length_required 50 --correction --overrepresentation_analysis
+    fastp -i "$SAMPLE_DIR/${sample}_R1.fastq.gz" -I "$SAMPLE_DIR/${sample}_R2.fastq.gz" -o ${sample}_R1_paired.fastq.gz -O ${sample}_R2_paired.fastq.gz --unpaired1 ${sample}_R1_unpaired.fastq.gz --unpaired2 ${sample}_R2_unpaired.fastq.gz --html "${sample}_fastp.html" --json "${sample}_fastp.json" --report_title "${sample} fastp report" --thread 16 --compression 4 --verbose --dedup --dup_calc_accuracy 6 --detect_adapter_for_pe --trim_front1 15 --trim_front2 15 --trim_tail1 15 --trim_tail2 15 --cut_right --cut_front --cut_mean_quality 30 --qualified_quality_phred 33 --length_required 50 --correction --overrepresentation_analysis
 done
 
 
@@ -51,7 +51,7 @@ done
 # Running fastp on GF samples 
 for sample in $(cat $SAMPLE_LIST_GF); do
     echo "Processing sample: $sample"
-    fastp -i "$SAMPLE_DIR/${sample}_R1.fastq.gz" -I "$SAMPLE_DIR/${sample}_R2.fastq.gz" -o ${sample}_R1_paired.fastq.gz -O ${sample}_R2_paired.fastq.gz --unpaired1 ${sample}_R1_unpaired.fastq.gz --unpaired2 ${sample}_R2_unpaired.fastq.gz --html "${sample}_fastp.html" --json "${sample}_fastp.json" --report_title "${sample} fastp report" --thread 16 --compression 4  --dont_overwrite --verbose --dedup --dup_calc_accuracy 6 --detect_adapter_for_pe --cut_right --cut_front --cut_mean_quality 30 --qualified_quality_phred 33 --length_required 50 --correction --overrepresentation_analysis
+    fastp -i "$SAMPLE_DIR/${sample}_R1.fastq.gz" -I "$SAMPLE_DIR/${sample}_R2.fastq.gz" -o ${sample}_R1_paired.fastq.gz -O ${sample}_R2_paired.fastq.gz --unpaired1 ${sample}_R1_unpaired.fastq.gz --unpaired2 ${sample}_R2_unpaired.fastq.gz --html "${sample}_fastp.html" --json "${sample}_fastp.json" --report_title "${sample} fastp report" --thread 16 --compression 4 --verbose --dedup --dup_calc_accuracy 6 --detect_adapter_for_pe --trim_tail1 50 --trim_tail2 50 --cut_right --cut_front --cut_mean_quality 30 --qualified_quality_phred 33 --length_required 50 --correction --overrepresentation_analysis
 done
 
 

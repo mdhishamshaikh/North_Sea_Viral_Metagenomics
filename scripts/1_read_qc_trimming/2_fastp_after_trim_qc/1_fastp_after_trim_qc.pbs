@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+#PBS -N fastp_after_trim_qc
+#PBS -l nodes=1:ppn=20 #1 of node requested; 20 processors in total
+#PBS -l walltime=40:00:00 # 72 hours walltime
+#PBS -l mem=100gb #100 Gb memory in total
+#PBS -m abe
+#PBS -M MohammedHisham.Shaikh@ugent.be
+#PBS -o /data/gent/vo/001/gvo00125/vsc44392/Projects/North_Sea_Viral_Metagenomics/logs/${PBS_JOBNAME}_output.log  
+#PBS -e /data/gent/vo/001/gvo00125/vsc44392/Projects/North_Sea_Viral_Metagenomics/logs/${PBS_JOBNAME}_error.log   
+
+
+
+#Making sure I am on the rigth cluster
+module swap cluster/doduo
+
+
+# Unset OMP_PROC_BIND
+unset OMP_PROC_BIND
+
+
+
+# AIM: To assess the quality of trimmed reads from NJ200, PE cruises and GF2018 and trim them
+
+. ~/vo_vliz.sh
+. .bashrc
+
+# Defining directories
+HOME_DIR="/data/gent/vo/001/gvo00125/vsc44392/Projects/North_Sea_Viral_Metagenomics"
+OUTPUT_DIR="$HOME_DIR/working/1_read_qc_trimming/2_fastp_after_trim_qc"
+TRIMMED_READS_DIR="$HOME_DIR/working/1_read_qc_trimming/1_fastp_trim_qc"
+SAMPLE_DIR="$HOME_DIR/data/raw_reads"
+SAMPLE_LIST_NJ_PE_GF="$HOME_DIR/data/sample_overview/NJ_PE_GF_sample_list.csv"
+
+
+mkdir -p $OUTPUT_DIR
+cd $OUTPUT_DIR
+
+# Activate fastp
+mamba activate fastp
+
+# Running fastp for quality check only
+for sample in $(cat $SAMPLE_LIST_NJ_PE_GF); do
+    echo "Processing sample: $sample"
+    fastp -i $TRIMMED_READS_DIR/${sample}_R1_paired.fastq.gz -I $TRIMMED_READS_DIR/${sample}_R2_paired.fastq.gz  --disable_adapter_trimming --disable_quality_filtering --disable_length_filtering --disable_trim_poly_g --html "${sample}_fastp.html" --json "${sample}_fastp.json" --report_title "${sample} fastp report" --thread 16 
+done
+
+
+
+
+
+mamba deactivate
+
+
+mamba activate multiqc
+
+multiqc -d . -o ./multiqc -n after_trimming_reads_multiqc_report.html
+
+
+mamba deactivate

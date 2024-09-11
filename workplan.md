@@ -8,7 +8,18 @@ Samples
 # Plans
 
 # Step 0: fetch raw reads from Garin-Fernandez et al. (2018) from ENA project number - PRJEB21210
+
+
 # Step 1: Quality checks on raw reads and metagenome assembly.
+fastP was used to trim the raw reads and assess the quality. viromeQC was used to assess non-viral contamination. 
+Although, the qaulity of the reads are good, fastP suggested high duplication % for NJ and PE samples, which was also reflective in viromeQC analysis (high enrichment score).
+Considering I have already used dedup option in fastP, we assume that these duplication are likely due to abundant viruses.
+
+
+
+
+
+I will run prin
 fastP for quality assessment and quality filtering. I will have to apply these separately for Garin-Fernandez et al. (2018) study as it doesn't use the A-LA 
 
 fastP performed on all samples. ViromeQC unning right now. 
