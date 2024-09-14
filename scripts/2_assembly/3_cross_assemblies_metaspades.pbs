@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+#PBS -N metaspades_cross_assemblies
+#PBS -l nodes=1:ppn=40 #1 node requested; 40 processors in total
+#PBS -l walltime=48:00:00 # 48 hours walltime
+#PBS -l mem=150gb #150 Gb memory in total
+#PBS -m abe
+#PBS -M MohammedHisham.Shaikh@ugent.be
+#PBS -o /data/gent/vo/001/gvo00125/vsc44392/Projects/North_Sea_Viral_Metagenomics/logs/${PBS_JOBNAME}_output.log  
+#PBS -e /data/gent/vo/001/gvo00125/vsc44392/Projects/North_Sea_Viral_Metagenomics/logs/${PBS_JOBNAME}_error.log   
+
+
+# Making sure I am on the right cluster
+module swap cluster/doduo
+
+# Unset OMP_PROC_BIND
+unset OMP_PROC_BIND
+
+# AIM: To assemble cross-sample data using metaSPAdes, assess the quality using MetaQUAST, and compile the report using MultiQC
+
+. ~/vo_vliz.sh
+. .bashrc
+
+# Defining directories
+HOME_DIR="/data/gent/vo/001/gvo00125/vsc44392/Projects/North_Sea_Viral_Metagenomics"
+OUTPUT_DIR="$HOME_DIR/working/2_assembly/3_cross_assemblies_metaspades"
+TRIMMED_READS_DIR="$HOME_DIR/working/1_read_qc_trimming/1_fastp_trim_qc"
+METAQUAST_DIR="$OUTPUT_DIR/../3_metaquast_cross_assemblies_metaspades"
+
+mkdir -p $OUTPUT_DIR $METAQUAST_DIR
+cd $OUTPUT_DIR
+
+# Step 1: Concatenate all NJ and PE R1 and R2 reads
+echo "Concatenating NJ and PE paired reads..."
+
+# Concatenate R1 files (only NJ and PE samples)
+cat $TRIMMED_READS_DIR/V_NJ*_R1_paired.fastq.gz $TRIMMED_READS_DIR/V_P*_R1_paired.fastq.gz > $OUTPUT_DIR/NJ_PE_R1_concatenated.fastq.gz
+
+# Concatenate R2 files (only NJ and PE samples)
+cat $TRIMMED_READS_DIR/V_NJ*_R2_paired.fastq.gz $TRIMMED_READS_DIR/V_P*_R2_paired.fastq.gz > $OUTPUT_DIR/NJ_PE_R2_concatenated.fastq.gz
+
+# Step 2: Running metaSPAdes for cross-assembly
+echo "Running metaSPAdes for cross assembly..."
+
+mamba activate spades
+spades.py --meta -1 $OUTPUT_DIR/NJ_PE_R1_concatenated.fastq.gz -2 $OUTPUT_DIR/NJ_PE_R2_concatenated.fastq.gz -o $OUTPUT_DIR/NJ_PE_cross_assembly -t 40 -m 150
+mamba deactivate
+
+# Step 3: Renaming the scaffolded output file
+if [ -f "$OUTPUT_DIR/NJ_PE_cross_assembly/scaffolds.fasta" ]; then
+    mv "$OUTPUT_DIR/NJ_PE_cross_assembly/scaffolds.fasta" "$OUTPUT_DIR/NJ_PE_cross_assembly/NJ_PE_scaffolds.fasta"
+    echo "Renamed scaffolds.fasta to NJ_PE_scaffolds.fasta"
+else
+    echo "Warning: scaffolds.fasta not found for NJ_PE"
+fi
+
+# Step 4: Running MetaQUAST on the cross-assembly
+echo "Running MetaQUAST for NJ_PE cross assembly..."
+
+mamba activate quast
+if [ -f "$OUTPUT_DIR/NJ_PE_cross_assembly/NJ_PE_scaffolds.fasta" ]; then
+    metaquast.py "$OUTPUT_DIR/NJ_PE_cross_assembly/NJ_PE_scaffolds.fasta" \
+                 -o "$METAQUAST_DIR/NJ_PE_metaquast" \
+                 --max-ref-number 0 \
+                 --threads 40
+else
+    echo "Warning: NJ_PE_scaffolds.fasta not found."
+fi
+mamba deactivate
+
+# Step 5: Run MultiQC to compile MetaQUAST results
+echo "Running MultiQC on MetaQUAST results..."
+
+mamba activate multiqc
+multiqc $METAQUAST_DIR -o $METAQUAST_DIR/multiqc -n cross_assembly_metaquast_multiqc_report.html
+mamba deactivate

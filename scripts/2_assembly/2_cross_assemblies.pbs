@@ -99,11 +99,12 @@ if [ -f "$OUTPUT_DIR/${prefix}_cross_assembly/final.contigs.fa" ]; then
 
 
 # Running cross-assemblies
+run_cross_assembly "NJ_PE_sample_list.csv" "NJ_PE"
+run_cross_assembly "NJ_PE_GF_sample_list.csv" "NJ_PE_GF"
 run_cross_assembly "NJ_sample_list.csv" "NJ"
 run_cross_assembly "PE_sample_list.csv" "PE"
 run_cross_assembly "GF_sample_list.csv" "GF"
-run_cross_assembly "NJ_PE_sample_list.csv" "NJ_PE"
-run_cross_assembly "NJ_PE_GF_sample_list.csv" "NJ_PE_GF"
+
 
 
 

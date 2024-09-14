@@ -14,6 +14,7 @@ results/*
 logs/*
 !logs/.gitkeep
 
+<<<<<<< HEAD
 
 # R files
 *.Rproj.user
@@ -26,3 +27,6 @@ logs/*
 *.bkp
 *.dtmp
 *drawio
+=======
+*.pptx
+>>>>>>> 3223d188ec4d78b4893cb9601aaa7b6fb8072bf1

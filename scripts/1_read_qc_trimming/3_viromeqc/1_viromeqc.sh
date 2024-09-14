@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-#PBS -N genomad_individual_assemblies
+#PBS -N viromeqc
 #PBS -l nodes=1:ppn=40 #1 of node requested; 20 processors in total
-#PBS -l walltime=72:00:00 # 48 hours walltime
-#PBS -l mem=200gb #150 Gb memory in total
+#PBS -l walltime=24:00:00 # 48 hours walltime
+#PBS -l mem=100gb #100 Gb memory in total
 #PBS -m abe
 #PBS -M MohammedHisham.Shaikh@ugent.be
 #PBS -o /data/gent/vo/001/gvo00125/vsc44392/Projects/North_Sea_Viral_Metagenomics/logs/${PBS_JOBNAME}_output.log  
@@ -18,34 +18,40 @@ module swap cluster/doduo
 unset OMP_PROC_BIND
 
 
-# AIM: To classify viral contigs
+
+# AIM: To assess non-viral contamination in my raw reads
 
 . ~/vo_vliz.sh
 . .bashrc
 
 # Defining directories
 HOME_DIR="/data/gent/vo/001/gvo00125/vsc44392/Projects/North_Sea_Viral_Metagenomics"
-OUTPUT_DIR="$HOME_DIR/working/3_genomad/1_genomad_individual_assemblies"
-ASSEMBLY_DIR="$HOME_DIR/working/2_assembly/1_individual_assemblies"
+OUTPUT_DIR="$HOME_DIR/working/1_read_qc_trimming/3_viromeqc"
+TRIMMED_READS_DIR="$HOME_DIR/working/1_read_qc_trimming/1_fastp_trim_qc"
 SAMPLE_LIST_NJ_PE_GF="$HOME_DIR/data/sample_overview/NJ_PE_GF_sample_list.csv"
-GENOMAD_DB="$HOME/viral_tools/genomad/genomad_db"
+
+
 
 
 mkdir -p $OUTPUT_DIR
 cd $OUTPUT_DIR
 
+# Activate viromeQC
+mamba activate viromeqc
 
-mamba activate genomad
 
-
+# Running viromeQC 
 for sample in $(cat $SAMPLE_LIST_NJ_PE_GF); do
-  
-    echo "Running Genomad end-to-end for sample: $sample"
+    echo "Processing sample: $sample"
+    
+    viromeQC.py -i $TRIMMED_READS_DIR/${sample}_R1_paired.fastq.gz $TRIMMED_READS_DIR/${sample}_R2_paired.fastq.gz \
+    -o "$OUTPUT_DIR/${sample}_viromeqc_report.txt" \
+    --bowtie2_threads 40 \
+    --diamond_threads 40 \
+    -w environmental
 
-    # Running genomad
-    genomad end-to-end --threads 40 --cleanup --splits 16 "$ASSEMBLY_DIR/${sample}_megahit_assembly/${sample}_final_contigs.fa" "$OUTPUT_DIR/${sample}_genomad_output" "$GENOMAD_DB"
- 
 done 
 
+# Parsing the output
 
-mamba deactivate
+. $HOME_DIR/scripts/1_read_qc_trimming/3_viromeqc/2_parse_viromeqc_outputs.sh
