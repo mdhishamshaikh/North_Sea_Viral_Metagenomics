@@ -13,3 +13,16 @@ results/*
 
 logs/*
 !logs/.gitkeep
+
+
+# R files
+*.Rproj.user
+*.Rproj
+
+#Ppt
+*.pptx
+
+#DrawIo files
+*.bkp
+*.dtmp
+*drawio
