@@ -27,7 +27,7 @@ unset OMP_PROC_BIND
 # Defining directories
 HOME_DIR="/data/gent/vo/001/gvo00125/vsc44392/Projects/North_Sea_Viral_Metagenomics"
 GENOMAD_VIRUS_PROTEINS="$HOME_DIR/working/4_genomad/2_genomad_cross_assemblies/NJ_PE_GF_genomad_output/NJ_PE_GF_clustered_contigs_summary/NJ_PE_GF_clustered_contigs_virus_proteins.faa"
-OUTPUT_DIR="$HOME_DIR/working/9_eggnog_mapping/NJ_PE_GF_eggnog_mapper_output"
+OUTPUT_DIR="$HOME_DIR/working/9_functional_annotation/1_eggnog_mapping/NJ_PE_GF_eggnog_mapper_output"
 EGGNOG_DB_DIR="$HOME_DIR/../../viral_tools/eggnog/eggnog_db"
 
 mkdir -p $OUTPUT_DIR

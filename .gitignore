@@ -13,3 +13,5 @@ results/*
 
 logs/*
 !logs/.gitkeep
+
+*.pptx

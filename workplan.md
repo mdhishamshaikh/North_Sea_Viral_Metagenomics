@@ -45,3 +45,11 @@ cross assemblies are fine
 
 
 
+
+
+#### CHERRY - use Taxonkit to add lineage information from the names for bacterial hosts
+
+#### Combine PhaMER, PhaTYP, PhaGCN2 and CHERRY outptu and make it compatible for RawGraph alluvial diagram
+
+#### PhaGCN2 based taxonomy  - mapped reads
+ask Sarah a nd Filp abot ow to best adust for ssDNA vs dsDA
